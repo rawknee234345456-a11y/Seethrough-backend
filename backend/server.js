@@ -973,7 +973,7 @@ function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Locale, X-User-Timezone",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
   });
   res.end(JSON.stringify(payload));
@@ -982,7 +982,7 @@ function sendJson(res, statusCode, payload) {
 function sendNoContent(res) {
   res.writeHead(204, {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-User-Locale, X-User-Timezone",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
   });
   res.end();
