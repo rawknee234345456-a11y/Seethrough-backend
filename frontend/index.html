@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeeThrough Brain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section id="landingPage" class="landing-page">
+    <div class="landing-backdrop"></div>
+    <header class="landing-topbar">
+      <div class="landing-brand">
+        <div class="landing-brand-mark"><img src="logo.svg?v=2" alt="SeeThrough logo"></div>
+        <div>
+          <p class="eyebrow">Cut through the noise</p>
+          <h1>SeeThrough</h1>
+        </div>
+      </div>
+      <div class="landing-actions">
+        <button id="landingLoginBtn" class="landing-btn landing-btn-ghost" type="button">Log In</button>
+        <button id="landingSignupBtn" class="landing-btn landing-btn-primary" type="button">Sign Up</button>
+      </div>
+    </header>
+
+    <main class="landing-main">
+      <section class="landing-hero">
+        <div class="landing-copy">
+          <p class="landing-kicker">Beginner-first market learning platform</p>
+          <h2>Cut through the noise, with SeeThrough.</h2>
+          <p class="landing-text">Practice with live-looking markets, understand price moves in plain language, and build confidence before risking real capital.</p>
+          <div class="landing-cta-row">
+            <button id="landingHeroSignupBtn" class="landing-btn landing-btn-primary" type="button">Get Started</button>
+          </div>
+          <div class="landing-points">
+            <span>Live charts</span>
+            <span>Paper trading</span>
+            <span>AI research</span>
+            <span>Beginner friendly</span>
+          </div>
+        </div>
+        <div class="landing-showcase">
+          <article class="landing-glass-card landing-card-large">
+            <p class="eyebrow">Market Lens</p>
+            <h3>Learn what matters without the clutter.</h3>
+            <p class="muted">A focused workspace for charts, rates, news, insights, and practice trades in one calm flow.</p>
+          </article>
+          <div class="landing-showcase-grid">
+            <article class="landing-glass-card landing-benefit-card">
+              <span class="landing-stat-value">See the why</span>
+              <span class="landing-stat-label">Turn charts, headlines, and momentum into clear reasons before you act.</span>
+            </article>
+            <article class="landing-glass-card landing-benefit-card">
+              <span class="landing-stat-value">Trade calmer</span>
+              <span class="landing-stat-label">Build confidence with guided practice before real money is ever on the line.</span>
+            </article>
+            <article class="landing-glass-card">
+              <span class="landing-stat-value">AI</span>
+              <span class="landing-stat-label">Quick insight and research chat</span>
+            </article>
+            <article class="landing-glass-card">
+              <span class="landing-stat-value">Safe</span>
+              <span class="landing-stat-label">Practice without risking money</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="landing-info-grid">
+        <article class="landing-info-card">
+          <p class="eyebrow">Why SeeThrough</p>
+          <h3>Built for clarity, not overwhelm</h3>
+          <p class="muted">SeeThrough strips away noise so new traders can focus on trend, context, news, and disciplined practice.</p>
+        </article>
+        <article class="landing-info-card">
+          <p class="eyebrow">What You Can Do</p>
+          <h3>Train like a trader, think like an analyst</h3>
+          <p class="muted">Track live market movement, simulate trades, read symbol-specific news, and ask the research bot for deeper breakdowns.</p>
+        </article>
+        <article class="landing-info-card">
+          <p class="eyebrow">Who It Helps</p>
+          <h3>Beginners, students, and curious learners</h3>
+          <p class="muted">If complex terminals feel intimidating, this is a calmer place to build intuition and a process that lasts.</p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="landing-footer">
+      <div>
+        <strong>SeeThrough</strong>
+        <p class="muted">Cut through the noise, with SeeThrough.</p>
+      </div>
+      <div class="landing-footer-links">
+        <span>Paper trading workspace</span>
+        <span>Live market context</span>
+        <span>AI-powered research</span>
+      </div>
+    </footer>
+  </section>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><img src="logo.svg?v=2" alt="SeeThrough logo"></div>
+        <div class="sidebar-copy">
+          <p class="eyebrow">Cut through the noise</p>
+          <h1>SeeThrough</h1>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-target="dashboard"><span class="nav-icon">◈</span><span class="nav-label">Dashboard</span></button>
+        <button class="nav-item" data-target="trade"><span class="nav-icon">⟲</span><span class="nav-label">Trade</span></button>
+        <button class="nav-item" data-target="insights"><span class="nav-icon">✧</span><span class="nav-label">Insights</span></button>
+        <button class="nav-item" data-target="research"><span class="nav-icon">✺</span><span class="nav-label">AI Chat</span></button>
+        <button class="nav-item" data-target="news"><span class="nav-icon">📰</span><span class="nav-label">News</span></button>
+        <button class="nav-item" data-target="profile"><span class="nav-icon">◉</span><span class="nav-label">Profile</span></button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="hero fade-in">
+        <div class="hero-copy">
+          <p id="heroKicker" class="eyebrow">Cut through the noise, with SeeThrough</p>
+          <h2 id="heroTitle">Learn the market with a calmer view, cleaner context, and smarter guidance.</h2>
+          <p id="heroText" class="muted">SeeThrough helps beginners read price action, track practice trades, and understand what matters without getting buried in noise.</p>
+        </div>
+      </header>
+
+      <section id="dashboard" class="page active fade-in">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h3>Cut through the noise, with SeeThrough</h3>
+          </div>
+          <button id="refreshMarketBtn" class="btn btn-ghost">Refresh Data</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Trading Chart</p>
+                <h3>Market focus</h3>
+              </div>
+            </div>
+            <div class="symbol-row">
+              <button class="symbol-chip active" data-symbol="NASDAQ:AAPL">AAPL</button>
+              <button class="symbol-chip" data-symbol="NASDAQ:TSLA">TSLA</button>
+              <button class="symbol-chip" data-symbol="NASDAQ:MSFT">MSFT</button>
+              <button class="symbol-chip" data-symbol="BITSTAMP:BTCUSD">BTCUSD</button>
+              <button class="symbol-chip" data-symbol="BITSTAMP:ETHUSD">ETHUSD</button>
+            </div>
+            <div id="tradingview-widget" class="chart-frame"></div>
+          </section>
+
+          <section class="panel rates-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Rates</p>
+                <h3>Live market board</h3>
+              </div>
+            </div>
+            <div id="liveRatesWidget" class="rates-frame"></div>
+          </section>
+
+          <section class="panel news-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">News</p>
+                <h3>Watch the narrative</h3>
+              </div>
+            </div>
+            <div id="dashboardNewsWidget" class="news-frame"></div>
+          </section>
+
+          <section class="panel summary-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Account Snapshot</p>
+                <h3>Your progress, kept simple and clear</h3>
+              </div>
+            </div>
+            <div class="stats-grid">
+              <article class="stat-card"><span>Open Positions</span><strong id="positionsCount">0</strong></article>
+              <article class="stat-card"><span>Cash</span><strong id="balanceDisplay">₹100,000.00</strong></article>
+              <article class="stat-card"><span>Total Value</span><strong id="portfolioValueDisplay">₹100,000.00</strong></article>
+              <article class="stat-card"><span>Total P/L</span><strong id="profitLossDisplay">₹0.00</strong></article>
+              <article class="stat-card"><span>Invested</span><strong id="investedValueDisplay">₹0.00</strong></article>
+              <article class="stat-card"><span>Day Change</span><strong id="dayChangeDisplay">₹0.00</strong></article>
+            </div>
+            <div class="mini-feed">
+              <p class="eyebrow">Recent Trades</p>
+              <div id="recentTrades" class="mini-list"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="trade" class="page fade-in">
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Paper Trading</p>
+                <h3>Place practice trades on your account</h3>
+              </div>
+            </div>
+            <form id="tradeForm" class="trade-form">
+              <label>Asset<select id="tradeSymbol"></select></label>
+              <label>Action
+                <select id="tradeAction">
+                  <option value="buy">Buy</option>
+                  <option value="sell">Sell</option>
+                </select>
+              </label>
+              <label>Quantity<input id="tradeQuantity" type="number" min="1" value="1"></label>
+              <div class="trade-side">
+                <p id="tradePriceNote" class="muted">Current price: --</p>
+                <button type="submit" class="btn btn-primary">Submit Trade</button>
+              </div>
+            </form>
+            <div class="feedback-box">
+              <span>Status</span>
+              <strong id="tradeStatus">Sign in to begin saving trades to your account.</strong>
+            </div>
+            <div class="trade-summary-grid">
+              <article class="stat-card"><span>Remaining Cash</span><strong id="tradeCashDisplay">₹100,000.00</strong></article>
+              <article class="stat-card"><span>Invested Value</span><strong id="tradeInvestedDisplay">₹0.00</strong></article>
+              <article class="stat-card"><span>Portfolio Value</span><strong id="tradePortfolioValueDisplay">₹100,000.00</strong></article>
+              <article class="stat-card"><span>Total P/L</span><strong id="tradeProfitLossDisplay">₹0.00</strong></article>
+              <article class="stat-card"><span>Day Change</span><strong id="tradeDayChangeDisplay">₹0.00</strong></article>
+            </div>
+          </section>
+
+          <section class="panel trade-portfolio-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Portfolio</p>
+                <h3>Practice positions with live pricing context</h3>
+              </div>
+            </div>
+            <div id="portfolioTable" class="table-stack"></div>
+            <div class="trade-chart-block">
+              <div class="panel-head compact-head">
+                <div>
+                  <p class="eyebrow">Selected Asset Chart</p>
+                  <h3 id="tradeChartTitle">Live chart for the selected trade asset</h3>
+                </div>
+              </div>
+              <div id="tradeChartWidget" class="chart-frame trade-chart-frame"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="insights" class="page fade-in">
+        <section class="panel insights-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Quick Insight</p>
+              <h3>Translate the current move into plain language</h3>
+            </div>
+          </div>
+          <div class="insight-controls">
+            <label>Symbol<select id="insightSymbol"></select></label>
+            <button id="generateInsightBtn" class="btn btn-ghost">Generate Insight</button>
+          </div>
+          <div id="insightOutput" class="insight-box ai-response-box">Choose a market and generate a quick, clear explanation.</div>
+          <div class="panel-head compact-head">
+            <div>
+              <p class="eyebrow">Selected News</p>
+              <h3 id="selectedNewsTitle">Headline stream for the selected symbol</h3>
+            </div>
+          </div>
+          <div id="insightNewsWidget" class="news-frame insight-news-inline"></div>
+        </section>
+      </section>
+
+      <section id="research" class="page fade-in">
+        <section class="panel research-chat-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">AI Chat</p>
+              <h3>Ask detailed questions from the live market snapshot</h3>
+            </div>
+          </div>
+
+          <div id="researchMessages" class="research-messages">
+            <article class="chat-message chat-message-ai">
+              <div class="chat-bubble">
+                <p class="chat-meta">SeeThrough AI</p>
+                <div class="ai-response-box">
+                  Pick a market type, enter the asset, ask exactly what you want to know, and I’ll answer from the latest market snapshot available at request time.
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <form id="researchForm" class="research-composer">
+            <div class="research-toolbar">
+              <label>
+                <span>Market Type</span>
+                <select id="researchMarketType">
+                  <option value="stock">Stock</option>
+                  <option value="forex">Forex</option>
+                  <option value="crypto">Crypto</option>
+                </select>
+              </label>
+              <label>
+                <span>Asset</span>
+                <select id="researchAsset"></select>
+              </label>
+            </div>
+            <div class="research-input-row">
+              <label class="research-prompt-wrap">
+                <span>What do you want to know?</span>
+                <textarea id="researchPrompt" rows="3" placeholder="Ask exactly what you want: trend now, support/resistance today, momentum, risk, breakout chances, key levels, or what matters at this moment."></textarea>
+              </label>
+              <button type="submit" class="btn btn-primary research-send-btn">Send</button>
+            </div>
+          </form>
+        </section>
+      </section>
+
+      <section id="news" class="page fade-in">
+        <section class="panel news-host-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Research Feed</p>
+              <h3>Market headlines without leaving the workspace</h3>
+            </div>
+          </div>
+          <div id="newsWidget" class="news-frame news-page"></div>
+        </section>
+      </section>
+
+      <section id="profile" class="page fade-in">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h3>Your account and learning footprint</h3>
+            </div>
+          </div>
+          <div class="profile-grid">
+            <article class="stat-card"><span>Name</span><strong id="profileName">Guest Trader</strong></article>
+            <article class="stat-card"><span>Email</span><strong id="profileEmail">Not signed in</strong></article>
+            <article class="stat-card"><span>Account Type</span><strong>SeeThrough Account</strong></article>
+            <article class="stat-card"><span>Created</span><strong id="profileCreated">-</strong></article>
+            <article class="stat-card"><span>Last Login</span><strong id="profileLastLogin">-</strong></article>
+            <article class="stat-card"><span>Trades Saved</span><strong id="profileTradesCount">0</strong></article>
+          </div>
+          <div class="profile-auth-card">
+            <div class="profile-auth-copy">
+              <p class="eyebrow">Account Access</p>
+              <h4 id="profileAccessName">Guest Trader</h4>
+              <p id="profileAccessEmail" class="muted">Sign in to save trades and research.</p>
+            </div>
+            <div class="profile-auth-actions">
+              <button id="profileOpenAuthBtn" class="btn btn-primary" type="button">Log In / Sign Up</button>
+              <button id="profileLogoutBtn" class="btn btn-ghost hidden" type="button">Log Out</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="authModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="auth-header">
+        <div>
+          <p class="eyebrow">Authentication</p>
+          <h3 id="authTitle">Create your account</h3>
+          <p class="muted auth-subtitle">Cut through the noise, with SeeThrough.</p>
+        </div>
+        <button id="closeAuthBtn" class="auth-close-btn" type="button" aria-label="Close authentication modal">×</button>
+      </div>
+      <div class="auth-mode-pill">
+        <button id="authModeSignup" class="auth-mode-btn active" data-mode="signup" type="button">Sign Up</button>
+        <button id="authModeLogin" class="auth-mode-btn" data-mode="login" type="button">Log In</button>
+      </div>
+      <div class="auth-social-stack">
+        <div id="googleAuthBtn" class="auth-google-host"></div>
+        <button id="appleAuthBtn" class="auth-apple-btn" type="button">
+          <span class="auth-provider-icon" aria-hidden="true"></span>
+          <span>Continue with Apple</span>
+        </button>
+      </div>
+      <div class="auth-divider">
+        <span></span>
+        <strong>or</strong>
+        <span></span>
+      </div>
+      <form id="authForm" class="auth-form">
+        <label id="authNameWrap" class="hidden auth-field">
+          <span>Full Name</span>
+          <input id="authName" type="text" placeholder="Your name">
+        </label>
+        <label class="auth-field">
+          <span>Email</span>
+          <input id="authEmail" type="email" placeholder="Email">
+        </label>
+        <label class="auth-field">
+          <span>Password</span>
+          <input id="authPassword" type="password" placeholder="Password">
+        </label>
+        <p class="auth-password-hint">Password should be at least 15 characters or at least 8 characters including a number and a lowercase letter.</p>
+        <button id="authSubmitBtn" type="submit" class="auth-submit-btn">Continue with Email</button>
+      </form>
+      <p class="auth-switch-row">
+        <span id="authSwitchText">Already have an account?</span>
+        <button id="authSwitchBtn" class="auth-switch-btn" type="button">Log In</button>
+      </p>
+      <p id="authStatus" class="muted">Use your email credentials or continue with Google.</p>
+    </div>
+  </div>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="config.js"></script>
+  <script src="google-auth.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

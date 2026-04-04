@@ -1,0 +1,10 @@
+{
+  "name": "seethrough-brain",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack SeeThrough app with SQLite auth, account tracking, and Gemini-powered research chat.",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  }
+}
