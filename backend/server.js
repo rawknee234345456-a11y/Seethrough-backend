@@ -189,6 +189,13 @@ const genericEmailProviders = new Set([
   "protonmail.com",
   "aol.com"
 ]);
+const yahooRequestHeaders = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "application/json,text/plain,*/*",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Origin": "https://finance.yahoo.com",
+  "Referer": "https://finance.yahoo.com/"
+};
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -1223,8 +1230,12 @@ function extractSymbolFromText(text) {
 
 async function fetchYahooSnapshot({ yahooSymbol, marketType, symbol, name }) {
   const [quoteResponse, chartResponse] = await Promise.all([
-    fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(yahooSymbol)}`),
-    fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=5m&range=1d&includePrePost=true`)
+    fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(yahooSymbol)}`, {
+      headers: yahooRequestHeaders
+    }),
+    fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=5m&range=1d&includePrePost=true`, {
+      headers: yahooRequestHeaders
+    })
   ]);
 
   const quotePayload = await quoteResponse.json().catch(() => ({}));
