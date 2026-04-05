@@ -136,6 +136,18 @@
     tradeProfitLossDisplay: document.getElementById("tradeProfitLossDisplay"),
     tradeDayChangeDisplay: document.getElementById("tradeDayChangeDisplay"),
     tradeChartTitle: document.getElementById("tradeChartTitle"),
+    tradeCompassTitle: document.getElementById("tradeCompassTitle"),
+    refreshTradeCompassBtn: document.getElementById("refreshTradeCompassBtn"),
+    tradeSignalBadge: document.getElementById("tradeSignalBadge"),
+    tradeSignalHeadline: document.getElementById("tradeSignalHeadline"),
+    tradeSignalSummary: document.getElementById("tradeSignalSummary"),
+    tradeSignalBias: document.getElementById("tradeSignalBias"),
+    tradeSignalConfidence: document.getElementById("tradeSignalConfidence"),
+    tradeSignalEntry: document.getElementById("tradeSignalEntry"),
+    tradeSignalTarget: document.getElementById("tradeSignalTarget"),
+    tradeSignalInvalidation: document.getElementById("tradeSignalInvalidation"),
+    tradeSignalTimestamp: document.getElementById("tradeSignalTimestamp"),
+    tradeSignalReasons: document.getElementById("tradeSignalReasons"),
     portfolioTable: document.getElementById("portfolioTable"),
     positionsCount: document.getElementById("positionsCount"),
     balanceDisplay: document.getElementById("balanceDisplay"),
@@ -169,6 +181,8 @@
     renderResearchMessages();
     renderTradingView("NASDAQ:AAPL");
     renderTradeChart("AAPL");
+    renderTradeCompassChart("AAPL");
+    resetTradeCompass("Choose an asset in Practice Trade to load a live setup read.");
     renderRatesWidget();
     renderNewsWidget("dashboardNewsWidget", "headlines");
     renderNewsWidget("newsWidget", "headlines");
@@ -283,6 +297,11 @@
     elements.tradeSymbol.addEventListener("change", () => {
       updateTradePriceNote();
       renderTradeChart(elements.tradeSymbol.value);
+      renderTradeCompassChart(elements.tradeSymbol.value);
+      loadTradeCompass(elements.tradeSymbol.value);
+    });
+    elements.refreshTradeCompassBtn?.addEventListener("click", () => {
+      loadTradeCompass(elements.tradeSymbol.value);
     });
     elements.tradeForm.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -320,6 +339,7 @@
         updateTradePriceNote();
         await loadMarketData();
         renderAccountViews();
+        await loadTradeCompass(asset.id);
         elements.tradeStatus.textContent = `Saved ${elements.tradeAction.value} trade for ${quantity} ${asset.id} at ${formatCurrency(response.executedPrice)}.`;
       } catch (error) {
         elements.tradeStatus.textContent = error.message;
@@ -414,7 +434,7 @@
         meta: "SeeThrough AI",
         content: ""
       });
-      setThinking(pendingMessage.body, "Analyzing the live market snapshot");
+      setThinking(pendingMessage.body, "Looking at the live market now");
       elements.researchPrompt.value = "";
 
       try {
@@ -623,6 +643,141 @@
     });
   }
 
+  function renderTradeCompassChart(assetId) {
+    const target = document.getElementById("tradeCompassChartWidget");
+    if (!target) {
+      return;
+    }
+
+    const normalizedAssetId = String(assetId || "AAPL").trim().toUpperCase();
+    const tradingViewSymbol = toTradingViewSymbol(normalizedAssetId);
+    const asset = getSelectedAsset(normalizedAssetId);
+    target.innerHTML = "";
+
+    if (elements.tradeCompassTitle) {
+      elements.tradeCompassTitle.textContent = asset
+        ? `${asset.name} (${asset.id}) live signal view`
+        : "Live setup on the selected trade asset";
+    }
+
+    if (!window.TradingView) {
+      target.textContent = "TradingView chart could not load.";
+      return;
+    }
+
+    new window.TradingView.widget({
+      width: "100%",
+      height: 460,
+      symbol: tradingViewSymbol,
+      interval: "30",
+      timezone: "Asia/Kolkata",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      enable_publishing: false,
+      hide_side_toolbar: false,
+      allow_symbol_change: false,
+      withdateranges: true,
+      container_id: "tradeCompassChartWidget"
+    });
+  }
+
+  async function loadTradeCompass(assetId = elements.tradeSymbol?.value || state.selectedMarketId) {
+    const asset = getSelectedAsset(assetId);
+    if (!asset) {
+      resetTradeCompass("Choose an asset in Practice Trade to load a live setup read.");
+      return;
+    }
+
+    renderTradeCompassChart(asset.id);
+
+    if (!state.token) {
+      resetTradeCompass("Log in to load a live buy, sell, or wait read for this chart.");
+      return;
+    }
+
+    setTradeCompassLoading(asset);
+
+    try {
+      const response = await apiFetch("/trade/compass", {
+        method: "POST",
+        body: JSON.stringify({
+          symbol: asset.id,
+          name: asset.name,
+          marketType: asset.type
+        })
+      });
+      renderTradeCompass(response.signal, asset);
+    } catch (error) {
+      resetTradeCompass(error.message || "Live signal data is unavailable right now.");
+    }
+  }
+
+  function setTradeCompassLoading(asset) {
+    const name = asset ? `${asset.name} (${asset.id})` : "the selected asset";
+    applyTradeSignalTone("neutral");
+    elements.tradeSignalBadge.textContent = "LOADING";
+    elements.tradeSignalHeadline.textContent = `Reading ${name} right now`;
+    elements.tradeSignalSummary.textContent = "Pulling the latest market snapshot and updating the chart overlay.";
+    elements.tradeSignalBias.textContent = "Loading";
+    elements.tradeSignalConfidence.textContent = "--";
+    elements.tradeSignalEntry.textContent = "--";
+    elements.tradeSignalTarget.textContent = "--";
+    elements.tradeSignalInvalidation.textContent = "--";
+    elements.tradeSignalTimestamp.textContent = "--";
+    elements.tradeSignalReasons.innerHTML = "<article class='trade-signal-reason'><strong>Live engine is refreshing</strong><p class='muted'>This updates from the selected trade asset and the latest market snapshot.</p></article>";
+  }
+
+  function resetTradeCompass(message) {
+    applyTradeSignalTone("neutral");
+    elements.tradeSignalBadge.textContent = "WAIT";
+    elements.tradeSignalHeadline.textContent = "Live setup not ready yet";
+    elements.tradeSignalSummary.textContent = message;
+    elements.tradeSignalBias.textContent = "Wait";
+    elements.tradeSignalConfidence.textContent = "--";
+    elements.tradeSignalEntry.textContent = "--";
+    elements.tradeSignalTarget.textContent = "--";
+    elements.tradeSignalInvalidation.textContent = "--";
+    elements.tradeSignalTimestamp.textContent = "--";
+    elements.tradeSignalReasons.innerHTML = "<article class='trade-signal-reason'><strong>No active setup loaded</strong><p class='muted'>Select an asset and refresh the signal to see the live read on chart.</p></article>";
+  }
+
+  function renderTradeCompass(signal, asset) {
+    const tone = String(signal?.tone || "neutral").toLowerCase();
+    applyTradeSignalTone(tone);
+    elements.tradeSignalBadge.textContent = String(signal?.signal || "WAIT").toUpperCase();
+    elements.tradeSignalHeadline.textContent = signal?.headline || `${asset?.name || "Selected asset"} signal read`;
+    elements.tradeSignalSummary.textContent = signal?.summary || "The live setup could not be described right now.";
+    elements.tradeSignalBias.textContent = signal?.biasLabel || capitalizeWord(String(signal?.signal || "wait").toLowerCase());
+    elements.tradeSignalConfidence.textContent = signal?.confidenceLabel || "--";
+    elements.tradeSignalEntry.textContent = signal?.entryLabel || "--";
+    elements.tradeSignalTarget.textContent = signal?.targetLabel || "--";
+    elements.tradeSignalInvalidation.textContent = signal?.invalidationLabel || "--";
+    elements.tradeSignalTimestamp.textContent = signal?.marketTimestamp ? formatDateTime(signal.marketTimestamp) : "--";
+    elements.tradeSignalReasons.innerHTML = Array.isArray(signal?.reasons) && signal.reasons.length
+      ? signal.reasons.map((reason) => `
+          <article class="trade-signal-reason">
+            <strong>${reason.title || "Live reason"}</strong>
+            <p class="muted">${reason.text || ""}</p>
+          </article>
+        `).join("")
+      : "<article class='trade-signal-reason'><strong>No live reasons returned</strong><p class='muted'>Refresh the signal again in a moment.</p></article>";
+  }
+
+  function applyTradeSignalTone(tone) {
+    const normalizedTone = String(tone || "neutral").toLowerCase();
+    elements.tradeSignalBadge.classList.remove("trade-signal-buy", "trade-signal-sell", "trade-signal-neutral");
+    if (normalizedTone === "buy" || normalizedTone === "positive") {
+      elements.tradeSignalBadge.classList.add("trade-signal-buy");
+      return;
+    }
+    if (normalizedTone === "sell" || normalizedTone === "negative") {
+      elements.tradeSignalBadge.classList.add("trade-signal-sell");
+      return;
+    }
+    elements.tradeSignalBadge.classList.add("trade-signal-neutral");
+  }
+
   function renderRatesWidget() {
     const target = document.getElementById("liveRatesWidget");
     target.innerHTML = "";
@@ -739,6 +894,8 @@
     updateTradePriceNote();
     if (state.currentPage === "trade") {
       renderTradeChart(elements.tradeSymbol.value);
+      renderTradeCompassChart(elements.tradeSymbol.value);
+      loadTradeCompass(elements.tradeSymbol.value);
     }
   }
 
@@ -800,10 +957,12 @@
     const activeSymbol = document.querySelector(".symbol-chip.active")?.dataset.symbol || "NASDAQ:AAPL";
     renderTradingView(activeSymbol);
     renderTradeChart(elements.tradeSymbol?.value || "AAPL");
+    renderTradeCompassChart(elements.tradeSymbol?.value || "AAPL");
     renderRatesWidget();
     renderNewsWidget("dashboardNewsWidget", "headlines");
     renderNewsWidget("newsWidget", "headlines");
     renderInsightNews();
+    loadTradeCompass(elements.tradeSymbol?.value || state.selectedMarketId);
   }
 
   function renderHero() {
@@ -830,6 +989,8 @@
     if (nextTarget === "trade") {
       window.setTimeout(() => {
         renderTradeChart(elements.tradeSymbol.value || state.selectedMarketId);
+        renderTradeCompassChart(elements.tradeSymbol.value || state.selectedMarketId);
+        loadTradeCompass(elements.tradeSymbol.value || state.selectedMarketId);
       }, 60);
     }
   }
@@ -1329,8 +1490,22 @@
     });
   }
 
+  function formatDateTime(value) {
+    return new Date(value).toLocaleString(getCurrencyPreferences().locale, {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
+
   function roundMoney(value) {
     return Math.round(Number(value || 0) * 100) / 100;
+  }
+
+  function capitalizeWord(value) {
+    const text = String(value || "").trim();
+    return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : "";
   }
 
   function getCurrencyPreferences() {

@@ -712,6 +712,120 @@ strong {
   height: 320px;
 }
 
+.trade-compass-panel {
+  margin-top: 20px;
+}
+
+.trade-compass-grid,
+.trade-compass-metrics {
+  display: grid;
+  gap: 18px;
+}
+
+.trade-compass-grid {
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+  align-items: start;
+}
+
+.trade-compass-chart-shell {
+  position: relative;
+}
+
+.trade-compass-chart-frame {
+  height: 460px;
+}
+
+.trade-signal-overlay {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  z-index: 3;
+  max-width: 420px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(150, 178, 204, 0.16);
+  background: linear-gradient(180deg, rgba(7, 17, 26, 0.9), rgba(7, 17, 26, 0.78));
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+}
+
+.trade-signal-overlay strong {
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 1.12rem;
+  line-height: 1.35;
+}
+
+.trade-signal-overlay p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.trade-signal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.trade-signal-buy {
+  color: #052515;
+  background: linear-gradient(135deg, rgba(105, 214, 168, 0.96), rgba(133, 230, 187, 0.96));
+}
+
+.trade-signal-sell {
+  color: #2d0909;
+  background: linear-gradient(135deg, rgba(255, 132, 132, 0.96), rgba(255, 171, 171, 0.96));
+}
+
+.trade-signal-neutral {
+  color: #dfeaf4;
+  background: linear-gradient(135deg, rgba(150, 178, 204, 0.28), rgba(115, 137, 160, 0.28));
+}
+
+.trade-compass-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.trade-compass-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.trade-compass-reasons {
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.trade-signal-reason {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.trade-signal-reason strong {
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.trade-signal-reason p {
+  margin: 0;
+  line-height: 1.6;
+}
+
 .insights-panel {
   max-width: 100%;
 }
@@ -800,6 +914,10 @@ textarea {
 
 .ai-response-box {
   position: relative;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(150, 178, 204, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
 }
 
 .research-chat-panel {
@@ -835,11 +953,16 @@ textarea {
   text-align: left;
 }
 
+.chat-message-ai .chat-bubble {
+  max-width: min(860px, 90%);
+}
+
 .chat-meta {
   margin: 0 0 8px;
   color: var(--muted);
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: none;
 }
 
 .chat-message-user .ai-response-box,
@@ -897,7 +1020,7 @@ textarea {
 
 .ai-response {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .ai-response-block {
@@ -909,14 +1032,14 @@ textarea {
   margin: 6px 0 0;
   color: #dff5eb;
   font-family: "Sora", sans-serif;
-  font-size: 1rem;
+  font-size: 0.97rem;
   line-height: 1.35;
 }
 
 .ai-response-paragraph,
 .ai-response-item {
   color: #d5e1ec;
-  line-height: 1.75;
+  line-height: 1.8;
 }
 
 .ai-response-item {
@@ -1239,7 +1362,8 @@ textarea {
   }
 
   .dashboard-grid,
-  .content-grid {
+  .content-grid,
+  .trade-compass-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1311,6 +1435,7 @@ textarea {
 
   .stats-grid,
   .trade-summary-grid,
+  .trade-compass-metrics,
   .trade-form,
   .research-form,
   .profile-grid,

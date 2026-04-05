@@ -255,6 +255,61 @@
             </div>
           </section>
         </div>
+
+        <section class="panel trade-compass-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Trade Compass</p>
+              <h3 id="tradeCompassTitle">Live setup on the selected trade asset</h3>
+            </div>
+            <button id="refreshTradeCompassBtn" class="btn btn-ghost" type="button">Refresh Signal</button>
+          </div>
+
+          <div class="trade-compass-grid">
+            <div class="trade-compass-chart-shell">
+              <div class="trade-signal-overlay">
+                <span id="tradeSignalBadge" class="trade-signal-badge trade-signal-neutral">WAIT</span>
+                <strong id="tradeSignalHeadline">Waiting for a live setup read.</strong>
+                <p id="tradeSignalSummary" class="muted">Choose an asset in Practice Trade and this chart overlay will update with a live directional read.</p>
+              </div>
+              <div id="tradeCompassChartWidget" class="chart-frame trade-compass-chart-frame"></div>
+            </div>
+
+            <div class="trade-compass-side">
+              <div class="trade-compass-metrics">
+                <article class="stat-card">
+                  <span>Bias</span>
+                  <strong id="tradeSignalBias">Wait</strong>
+                </article>
+                <article class="stat-card">
+                  <span>Confidence</span>
+                  <strong id="tradeSignalConfidence">--</strong>
+                </article>
+                <article class="stat-card">
+                  <span>Entry Zone</span>
+                  <strong id="tradeSignalEntry">--</strong>
+                </article>
+                <article class="stat-card">
+                  <span>Target Zone</span>
+                  <strong id="tradeSignalTarget">--</strong>
+                </article>
+                <article class="stat-card">
+                  <span>Invalidation</span>
+                  <strong id="tradeSignalInvalidation">--</strong>
+                </article>
+                <article class="stat-card">
+                  <span>Market Timestamp</span>
+                  <strong id="tradeSignalTimestamp">--</strong>
+                </article>
+              </div>
+
+              <div class="trade-compass-reasons">
+                <p class="eyebrow">Why This Read</p>
+                <div id="tradeSignalReasons" class="mini-list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
 
       <section id="insights" class="page fade-in">
@@ -384,14 +439,14 @@
         <button id="authModeSignup" class="auth-mode-btn active" data-mode="signup" type="button">Sign Up</button>
         <button id="authModeLogin" class="auth-mode-btn" data-mode="login" type="button">Log In</button>
       </div>
-      <div class="auth-social-stack">
+      <div class="auth-social-stack hidden" aria-hidden="true">
         <div id="googleAuthBtn" class="auth-google-host"></div>
         <button id="appleAuthBtn" class="auth-apple-btn" type="button">
           <span class="auth-provider-icon" aria-hidden="true"></span>
           <span>Continue with Apple</span>
         </button>
       </div>
-      <div class="auth-divider">
+      <div class="auth-divider hidden" aria-hidden="true">
         <span></span>
         <strong>or</strong>
         <span></span>
