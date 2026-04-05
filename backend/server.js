@@ -673,6 +673,8 @@ async function handleApi(req, res, url) {
           "- Structure the answer around the user's question only.",
           "- Do not add sections the user did not ask for.",
           "- Do not include a generic conclusion or disclaimer footer.",
+          "- Make the answer feel like a proper research note, not a brief market widget summary.",
+          "- Give enough detail to explain the reasoning behind the view, the current live evidence, and what could change the read next.",
           "- Sound natural and analytical, not like a canned template.",
           "- Do not use fixed headings like 'What to watch now' unless the user explicitly asked for a list or checklist.",
           "- If the user asks about risks, give only the current risks and why they matter right now.",
@@ -684,7 +686,7 @@ async function handleApi(req, res, url) {
       const aiResult = await requestOpenRouterWithFallback([
         {
           role: "system",
-          content: "You are a calm financial research assistant for learning purposes only. Answer the user's specific market question using only the provided latest market snapshot and immediate market context. Do not give generic asset explainers, broad templates, or extra sections the user did not request. If information is not supported by the snapshot, say so clearly."
+          content: "You are a calm financial research assistant for learning purposes only. Answer the user's specific market question using only the provided latest market snapshot and immediate market context. Do not give generic asset explainers, broad templates, or extra sections the user did not request. If information is not supported by the snapshot, say so clearly. In research mode, sound like a concise analyst note: explain the live evidence, the current interpretation, and what could change next."
         },
         {
           role: "user",
@@ -1475,20 +1477,23 @@ function buildResponseShapeInstructions(questionType, scope) {
       case "probability":
         return [
           "Answer naturally in plain language.",
+          "Give a fuller research-style answer in 2 to 4 short paragraphs.",
           "Give a conditional probability range based on the live setup right now.",
-          "Explain the current factors that would improve or weaken that probability.",
+          "Explain the current factors that support that probability, the live factors that weaken it, and what would have to change over the next few hours to improve or reduce it.",
           "Do not use canned headings or numbered sections."
         ].join("\n");
       case "risks":
         return [
           "Answer only with the current risks that matter right now.",
-          "Use a short paragraph or a few bullets if helpful.",
+          "Give a fuller research-style answer in 2 to 4 short paragraphs or a short paragraph followed by a few bullets if that reads better.",
+          "Explain not just the risks themselves, but why they matter right now in the live setup.",
           "Do not use canned headings or numbered sections."
         ].join("\n");
       case "levels":
         return [
           "Answer naturally and focus on the most relevant live levels right now.",
-          "Explain what matters if price holds, breaks, or rejects those levels.",
+          "Give a fuller research-style answer in 2 to 4 short paragraphs.",
+          "Explain what matters if price holds, breaks, or rejects those levels, and which level is most important right now.",
           "Do not use canned headings or numbered sections."
         ].join("\n");
       case "trend":
@@ -1499,7 +1504,9 @@ function buildResponseShapeInstructions(questionType, scope) {
       default:
         return [
           "Answer naturally in plain language.",
-          "You may use one short paragraph and a few brief bullets only if that improves clarity.",
+          "Give a fuller research-style answer in 2 to 4 short paragraphs.",
+          "Make the answer descriptive enough to feel like a real research breakdown, not a one-line snapshot summary.",
+          "You may use a few bullets only if that clearly improves readability.",
           "Do not use canned headings or numbered sections."
         ].join("\n");
     }
@@ -1812,11 +1819,11 @@ function buildNaturalForecastAnswer(snapshot) {
     : `the session low near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}`;
   const openLine = `the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}`;
 
-  return `${snapshot.name} still leans ${sessionBias} over the next few hours because price is ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open and ${momentumText.toLowerCase()}. The cleanest continuation case is price holding around ${openLine} and pressing toward ${closerLevel}. If that hold fails, the more likely outcome is a choppy rotation back through the middle of today's range rather than a clean directional push.`;
+  return `${snapshot.name} still leans ${sessionBias} over the next few hours because price is ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open and ${momentumText.toLowerCase()}. That tells us the session bias is still intact, but it is not strong enough to assume automatic continuation without looking at where price is sitting inside today's range.\n\nThe cleaner continuation case is price holding around ${openLine} and then pressing toward ${closerLevel}. If that hold fails, the more likely outcome is a choppy rotation back through the middle of today's range rather than a clean directional push. So the next few hours are less about predicting a straight-line move and more about whether price can stay on the right side of the session open while short-term momentum remains aligned.`;
 }
 
 function buildNaturalWatchAnswer(snapshot) {
-  return `Right now the cleanest things to watch are the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}, the session high near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, and the session low near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}. The latest one-hour move is ${formatSignedPercent(snapshot.oneHourChangePercent)}, so the first useful clue is whether that short-term momentum keeps building or starts to cool from here.`;
+  return `Right now the cleanest things to watch are the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}, the session high near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, and the session low near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}. Those are the main decision points because the market is still trading inside today's live range rather than fully escaping it.\n\nThe latest one-hour move is ${formatSignedPercent(snapshot.oneHourChangePercent)}, so the first useful clue is whether that short-term momentum keeps building or starts to cool from here. If price starts losing momentum near the edge of the range, that is usually the earliest sign that the move is rotating rather than extending.`;
 }
 
 function buildNaturalTrendAnswer(snapshot) {
@@ -1827,20 +1834,20 @@ function buildNaturalTrendAnswer(snapshot) {
     ? `and the last hour is still moving ${snapshot.shortTermDirection} by ${formatSignedPercent(snapshot.oneHourChangePercent)}`
     : `while the last hour is relatively muted at ${formatSignedPercent(snapshot.oneHourChangePercent)}`;
 
-  return `${sessionText}, ${momentumText}. That means the broader intraday direction is still intact, but what matters next is whether price can stay away from the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} instead of slipping back into the middle of today's range.`;
+  return `${sessionText}, ${momentumText}. That means the broader intraday direction is still intact, but it is not enough on its own to say the move is strong unless price can keep holding away from the session open.\n\nWhat matters next is whether price can stay away from the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} instead of slipping back into the middle of today's range. If it does hold away from that line, the trend read gets stronger. If it fades back through it, then the session starts looking more rotational than directional.`;
 }
 
 function buildNaturalLevelsAnswer(snapshot) {
-  return `The clearest live levels right now are support near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}, resistance near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, and the session open around ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} as the nearest balance line. If price accepts above resistance, continuation becomes more credible; if it loses support, sellers are taking firmer control of the session.`;
+  return `The clearest live levels right now are support near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}, resistance near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, and the session open around ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} as the nearest balance line. Those three levels matter more than anything else because they tell you whether the market is accepting trend continuation or falling back into balance.\n\nIf price accepts above resistance, continuation becomes more credible and buyers are proving they can expand today's range. If it loses support, sellers are taking firmer control of the session. In the middle, the session open is the most important pivot because it is the first line that tells you whether the current move is still being respected.`;
 }
 
 function buildNaturalTradePlanAnswer(snapshot) {
   const bias = snapshot.intradayDirection === "upward" ? "long side" : "short side";
-  return `The cleaner intraday bias is currently the ${bias} because price is ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open. The practical decision zone is the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}; if price holds on the right side of that level and the last-hour move stays aligned, the setup has better follow-through. If it loses that level, the trade becomes much less clean.`;
+  return `The cleaner intraday bias is currently the ${bias} because price is ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open. That said, the setup is only attractive if the current directional bias and the latest hour continue to agree with each other.\n\nThe practical decision zone is the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}. If price holds on the right side of that level and the last-hour move stays aligned, the setup has better follow-through. If it loses that level, the trade becomes much less clean, because the market starts moving back toward balance instead of extending.`;
 }
 
 function buildNaturalPriceAnswer(snapshot) {
-  return `${snapshot.name} is trading near ${formatMarketNumber(snapshot.price)} ${snapshot.currency} right now, which is ${formatSignedPercent(snapshot.changePercent)} versus the previous close and ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open. Today's live range is ${formatMarketNumber(snapshot.dayLow)} to ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, so the current read depends on whether price keeps pushing toward the edge of that range or drifts back toward the middle.`;
+  return `${snapshot.name} is trading near ${formatMarketNumber(snapshot.price)} ${snapshot.currency} right now, which is ${formatSignedPercent(snapshot.changePercent)} versus the previous close and ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open. On its own that says where price is, but not whether the move is actually strengthening or fading.\n\nThe fuller read comes from the fact that today's live range is ${formatMarketNumber(snapshot.dayLow)} to ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}. If price keeps pushing toward the edge of that range and the last-hour move stays supportive, the current price starts to matter as part of continuation. If it drifts back toward the middle, the market is behaving more like a range than a trend.`;
 }
 
 function buildNaturalProbabilityAnswer(snapshot) {
@@ -1859,7 +1866,7 @@ function buildNaturalProbabilityAnswer(snapshot) {
         ? "roughly 47% to 53%"
         : "roughly 38% to 47%";
 
-  return `Based on the live setup only, the probability of a winning trade from here looks ${range}, not a certainty. The biggest reasons are the session move of ${formatSignedPercent(snapshot.intradayChangePercent)}, the last-hour move of ${formatSignedPercent(snapshot.oneHourChangePercent)}, and where price is sitting inside today's range. That probability improves if price can keep holding above ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} and weakens quickly if momentum fades back through that line.`;
+  return `Based on the live setup only, the probability of a winning trade from here looks ${range}, not a certainty. The biggest reasons are the session move of ${formatSignedPercent(snapshot.intradayChangePercent)}, the last-hour move of ${formatSignedPercent(snapshot.oneHourChangePercent)}, and where price is sitting inside today's range. In other words, the current setup has some live support, but it is still conditional on the market preserving its present structure.\n\nThat probability improves if price can keep holding above ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} and keep recent momentum from fading. It weakens quickly if momentum rolls over, price slips back through the session open, or the market starts rejecting the upper half of today's range.`;
 }
 
 function buildNaturalRiskAnswer(snapshot) {
@@ -1902,7 +1909,7 @@ function buildNaturalRiskAnswer(snapshot) {
     return `${point.charAt(0).toUpperCase()}${point.slice(1)}.`;
   });
 
-  return body.join(" ");
+  return `${body.join(" ")}\n\nThe key point is that the live risk is not just about direction being wrong; it is about the market being unstable enough right now to punish late or overconfident entries. That is why the next clue matters so much: whether price keeps holding its current side of the session open and whether the latest one-hour move continues to confirm the broader session bias.`;
 }
 
 function buildRiskAnswer(snapshot) {
