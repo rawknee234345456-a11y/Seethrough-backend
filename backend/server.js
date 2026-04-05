@@ -626,7 +626,7 @@ async function handleApi(req, res, url) {
     const snapshotContext = buildMarketContext(marketSnapshot);
     const historyContext = buildHistoryContext(chatHistory);
     const questionType = classifyResearchQuestion(prompt);
-    const responseShape = buildResponseShapeInstructions(questionType);
+    const responseShape = buildResponseShapeInstructions(questionType, scope);
     const shouldAppendAdviceDisclaimer = needsFinancialAdviceDisclaimer(prompt, questionType);
 
     const deterministicAnswer = generateStructuredMarketAnswer({
@@ -634,7 +634,8 @@ async function handleApi(req, res, url) {
       snapshot: marketSnapshot,
       asset: resolvedAsset.symbol,
       prompt,
-      marketType: normalizedMarketType
+      marketType: normalizedMarketType,
+      scope
     });
 
     const composedPrompt = scope === "quick"
@@ -672,6 +673,8 @@ async function handleApi(req, res, url) {
           "- Structure the answer around the user's question only.",
           "- Do not add sections the user did not ask for.",
           "- Do not include a generic conclusion or disclaimer footer.",
+          "- Sound natural and analytical, not like a canned template.",
+          "- Do not use fixed headings like 'What to watch now' unless the user explicitly asked for a list or checklist.",
           "- If the user asks about risks, give only the current risks and why they matter right now.",
           "- If the user asks about winning probability, estimate it only as a conditional range based on the live setup, and explain what must happen next for that probability to improve or weaken.",
           `Response format:\n${responseShape}`
@@ -697,12 +700,12 @@ async function handleApi(req, res, url) {
         resolvedAsset.symbol,
         normalizedMarketType,
         prompt || composedPrompt,
-        finalizeResearchAnswer(cleanDisplayedResearchAnswer(sanitizeAiResearchResponse(aiResult.content, questionType), questionType), shouldAppendAdviceDisclaimer),
+        finalizeResearchAnswer(cleanDisplayedResearchAnswer(sanitizeAiResearchResponse(aiResult.content, questionType), questionType, scope), shouldAppendAdviceDisclaimer),
         isoNow()
       );
 
       sendJson(res, 200, {
-        answer: finalizeResearchAnswer(cleanDisplayedResearchAnswer(sanitizeAiResearchResponse(aiResult.content, questionType), questionType), shouldAppendAdviceDisclaimer),
+        answer: finalizeResearchAnswer(cleanDisplayedResearchAnswer(sanitizeAiResearchResponse(aiResult.content, questionType), questionType, scope), shouldAppendAdviceDisclaimer),
         model: aiResult.model
       });
     } catch (error) {
@@ -715,12 +718,12 @@ async function handleApi(req, res, url) {
           resolvedAsset.symbol,
           normalizedMarketType,
           prompt,
-          finalizeResearchAnswer(cleanDisplayedResearchAnswer(deterministicAnswer, questionType), shouldAppendAdviceDisclaimer),
+          finalizeResearchAnswer(cleanDisplayedResearchAnswer(deterministicAnswer, questionType, scope), shouldAppendAdviceDisclaimer),
           isoNow()
         );
 
         sendJson(res, 200, {
-          answer: finalizeResearchAnswer(cleanDisplayedResearchAnswer(deterministicAnswer, questionType), shouldAppendAdviceDisclaimer),
+          answer: finalizeResearchAnswer(cleanDisplayedResearchAnswer(deterministicAnswer, questionType, scope), shouldAppendAdviceDisclaimer),
           model: "market-snapshot-engine-fallback"
         });
         return;
@@ -1437,6 +1440,9 @@ function buildConversationalReply({ conversationalType, asset }) {
 
 function classifyResearchQuestion(prompt) {
   const text = String(prompt || "").toLowerCase();
+  if (/\b(next few hours|next hour|coming hours|rest of the session|where .* go|where can .* go|where do you think .* go|where do u think .* go|likely move from here|path from here)\b/.test(text)) {
+    return "forecast";
+  }
   if (/\bprobability|chance|odds|winning trade|win rate|success rate\b/.test(text)) {
     return "probability";
   }
@@ -1461,8 +1467,52 @@ function classifyResearchQuestion(prompt) {
   return "direct";
 }
 
-function buildResponseShapeInstructions(questionType) {
+function buildResponseShapeInstructions(questionType, scope) {
+  const normalizedScope = String(scope || "research").trim().toLowerCase();
+
+  if (normalizedScope !== "quick") {
+    switch (questionType) {
+      case "probability":
+        return [
+          "Answer naturally in plain language.",
+          "Give a conditional probability range based on the live setup right now.",
+          "Explain the current factors that would improve or weaken that probability.",
+          "Do not use canned headings or numbered sections."
+        ].join("\n");
+      case "risks":
+        return [
+          "Answer only with the current risks that matter right now.",
+          "Use a short paragraph or a few bullets if helpful.",
+          "Do not use canned headings or numbered sections."
+        ].join("\n");
+      case "levels":
+        return [
+          "Answer naturally and focus on the most relevant live levels right now.",
+          "Explain what matters if price holds, breaks, or rejects those levels.",
+          "Do not use canned headings or numbered sections."
+        ].join("\n");
+      case "trend":
+      case "watch":
+      case "forecast":
+      case "price":
+      case "trade-plan":
+      default:
+        return [
+          "Answer naturally in plain language.",
+          "You may use one short paragraph and a few brief bullets only if that improves clarity.",
+          "Do not use canned headings or numbered sections."
+        ].join("\n");
+    }
+  }
+
   switch (questionType) {
+    case "forecast":
+      return [
+        "Start immediately with the heading: Near-term path",
+        "Then explain where price could go over the next few hours based on the live setup.",
+        "Use short bullets only if helpful.",
+        "Do not include any intro, asset description, conclusion, or disclaimer."
+      ].join("\n");
     case "probability":
       return [
         "Start immediately with the heading: Probability read now",
@@ -1611,7 +1661,7 @@ function finalizeResearchAnswer(answer, shouldAppendAdviceDisclaimer) {
   return `${cleanAnswer}\n\n${disclaimer}`;
 }
 
-function cleanDisplayedResearchAnswer(answer, questionType) {
+function cleanDisplayedResearchAnswer(answer, questionType, scope) {
   const text = String(answer || "").replace(/\r/g, "").trim();
   if (!text) {
     return text;
@@ -1637,6 +1687,17 @@ function cleanDisplayedResearchAnswer(answer, questionType) {
     .map((line) => line.replace(/\*\*(.*?)\*\*/g, "$1"))
     .filter(Boolean);
 
+  if (String(scope || "research").trim().toLowerCase() !== "quick") {
+    const normalizedLines = lines.map((line, index, array) => {
+      if (index === 0 && /^(what to watch now|trend read now|key levels now|price read now|trade setup now|current risks now|probability read now|near-term path)$/i.test(line)) {
+        return "";
+      }
+      return line;
+    }).filter(Boolean);
+
+    return normalizedLines.join("\n");
+  }
+
   const deduped = lines.filter((line, index) => !canonicalHeading || index === 0 || line.toLowerCase() !== canonicalHeading.toLowerCase());
 
   if (questionType === "risks") {
@@ -1655,12 +1716,19 @@ function cleanDisplayedResearchAnswer(answer, questionType) {
   return deduped.join("\n").trim();
 }
 
-function generateStructuredMarketAnswer({ questionType, snapshot, asset, prompt, marketType }) {
+function generateStructuredMarketAnswer({ questionType, snapshot, asset, prompt, marketType, scope }) {
   if (!snapshot) {
     return "";
   }
 
+  const normalizedScope = String(scope || "research").trim().toLowerCase();
+  if (normalizedScope !== "quick") {
+    return buildNaturalFallbackAnswer({ questionType, snapshot, prompt });
+  }
+
   switch (questionType) {
+    case "forecast":
+      return buildForecastAnswer(snapshot);
     case "probability":
       return buildProbabilityAnswer(snapshot);
     case "risks":
@@ -1675,6 +1743,29 @@ function generateStructuredMarketAnswer({ questionType, snapshot, asset, prompt,
       return buildWatchAnswer(snapshot);
     case "price":
       return buildPriceAnswer(snapshot);
+    default:
+      return buildDirectMarketAnswer(snapshot, prompt);
+  }
+}
+
+function buildNaturalFallbackAnswer({ questionType, snapshot, prompt }) {
+  switch (questionType) {
+    case "forecast":
+      return buildNaturalForecastAnswer(snapshot);
+    case "watch":
+      return buildNaturalWatchAnswer(snapshot);
+    case "trend":
+      return buildNaturalTrendAnswer(snapshot);
+    case "levels":
+      return buildNaturalLevelsAnswer(snapshot);
+    case "trade-plan":
+      return buildNaturalTradePlanAnswer(snapshot);
+    case "price":
+      return buildNaturalPriceAnswer(snapshot);
+    case "probability":
+      return buildNaturalProbabilityAnswer(snapshot);
+    case "risks":
+      return buildNaturalRiskAnswer(snapshot);
     default:
       return buildDirectMarketAnswer(snapshot, prompt);
   }
