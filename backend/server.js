@@ -1771,6 +1771,140 @@ function buildNaturalFallbackAnswer({ questionType, snapshot, prompt }) {
   }
 }
 
+function buildForecastAnswer(snapshot) {
+  const aboveOpen = snapshot.price >= snapshot.sessionOpen;
+  const closerToHigh = Math.abs(snapshot.dayHigh - snapshot.price) <= Math.abs(snapshot.price - snapshot.dayLow);
+  const momentumSupportsDirection = aboveOpen
+    ? snapshot.oneHourChangePercent >= 0
+    : snapshot.oneHourChangePercent <= 0;
+
+  const likelyPath = aboveOpen
+    ? momentumSupportsDirection
+      ? `- The next few hours lean mildly upward while price remains above the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}.`
+      : `- The session still leans upward overall, but the recent hour is soft enough that upside continuation looks less clean right now.`
+    : momentumSupportsDirection
+      ? `- The next few hours lean mildly downward while price remains below the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}.`
+      : `- The session is still under pressure overall, but the recent hour is not confirming a clean continuation lower right now.`;
+
+  const levelLine = closerToHigh
+    ? `- The nearest pressure point is the session high around ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}; a clean push through it would strengthen continuation.`
+    : `- The nearest pressure point is the session low around ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}; a clean loss there would strengthen continuation lower.`;
+
+  const invalidationLine = aboveOpen
+    ? `- If price slips back under the session open or the last-hour move cools further, the path can turn into sideways chop instead of follow-through.`
+    : `- If price reclaims the session open or the last-hour move improves, the downside path can weaken into a bounce or range.`;
+
+  return [
+    "Near-term path",
+    likelyPath,
+    levelLine,
+    invalidationLine
+  ].join("\n");
+}
+
+function buildNaturalForecastAnswer(snapshot) {
+  const sessionBias = snapshot.intradayDirection === "upward" ? "slightly upward" : "slightly downward";
+  const momentumText = snapshot.oneHourChangePercent >= 0
+    ? `The last hour is still positive at ${formatSignedPercent(snapshot.oneHourChangePercent)}`
+    : `The last hour is soft at ${formatSignedPercent(snapshot.oneHourChangePercent)}`;
+  const closerLevel = Math.abs(snapshot.dayHigh - snapshot.price) <= Math.abs(snapshot.price - snapshot.dayLow)
+    ? `the session high near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}`
+    : `the session low near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}`;
+  const openLine = `the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}`;
+
+  return `${snapshot.name} still leans ${sessionBias} over the next few hours because price is ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open and ${momentumText.toLowerCase()}. The cleanest continuation case is price holding around ${openLine} and pressing toward ${closerLevel}. If that hold fails, the more likely outcome is a choppy rotation back through the middle of today's range rather than a clean directional push.`;
+}
+
+function buildNaturalWatchAnswer(snapshot) {
+  return `Right now the cleanest things to watch are the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}, the session high near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, and the session low near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}. The latest one-hour move is ${formatSignedPercent(snapshot.oneHourChangePercent)}, so the first useful clue is whether that short-term momentum keeps building or starts to cool from here.`;
+}
+
+function buildNaturalTrendAnswer(snapshot) {
+  const sessionText = snapshot.intradayDirection === "upward"
+    ? `The session bias is still upward with price ${formatSignedPercent(snapshot.intradayChangePercent)} above the open`
+    : `The session bias is still downward with price ${formatSignedPercent(snapshot.intradayChangePercent)} below the open`;
+  const momentumText = Math.abs(snapshot.oneHourChangePercent) >= 0.4
+    ? `and the last hour is still moving ${snapshot.shortTermDirection} by ${formatSignedPercent(snapshot.oneHourChangePercent)}`
+    : `while the last hour is relatively muted at ${formatSignedPercent(snapshot.oneHourChangePercent)}`;
+
+  return `${sessionText}, ${momentumText}. That means the broader intraday direction is still intact, but what matters next is whether price can stay away from the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} instead of slipping back into the middle of today's range.`;
+}
+
+function buildNaturalLevelsAnswer(snapshot) {
+  return `The clearest live levels right now are support near ${formatMarketNumber(snapshot.dayLow)} ${snapshot.currency}, resistance near ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, and the session open around ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} as the nearest balance line. If price accepts above resistance, continuation becomes more credible; if it loses support, sellers are taking firmer control of the session.`;
+}
+
+function buildNaturalTradePlanAnswer(snapshot) {
+  const bias = snapshot.intradayDirection === "upward" ? "long side" : "short side";
+  return `The cleaner intraday bias is currently the ${bias} because price is ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open. The practical decision zone is the session open near ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency}; if price holds on the right side of that level and the last-hour move stays aligned, the setup has better follow-through. If it loses that level, the trade becomes much less clean.`;
+}
+
+function buildNaturalPriceAnswer(snapshot) {
+  return `${snapshot.name} is trading near ${formatMarketNumber(snapshot.price)} ${snapshot.currency} right now, which is ${formatSignedPercent(snapshot.changePercent)} versus the previous close and ${formatSignedPercent(snapshot.intradayChangePercent)} from the session open. Today's live range is ${formatMarketNumber(snapshot.dayLow)} to ${formatMarketNumber(snapshot.dayHigh)} ${snapshot.currency}, so the current read depends on whether price keeps pushing toward the edge of that range or drifts back toward the middle.`;
+}
+
+function buildNaturalProbabilityAnswer(snapshot) {
+  const positiveSignals = [
+    snapshot.intradayChangePercent > 0,
+    snapshot.oneHourChangePercent > 0,
+    snapshot.price > snapshot.sessionOpen,
+    snapshot.price > ((snapshot.dayHigh + snapshot.dayLow) / 2)
+  ].filter(Boolean).length;
+
+  const range = positiveSignals >= 4
+    ? "roughly 58% to 64%"
+    : positiveSignals === 3
+      ? "roughly 53% to 58%"
+      : positiveSignals === 2
+        ? "roughly 47% to 53%"
+        : "roughly 38% to 47%";
+
+  return `Based on the live setup only, the probability of a winning trade from here looks ${range}, not a certainty. The biggest reasons are the session move of ${formatSignedPercent(snapshot.intradayChangePercent)}, the last-hour move of ${formatSignedPercent(snapshot.oneHourChangePercent)}, and where price is sitting inside today's range. That probability improves if price can keep holding above ${formatMarketNumber(snapshot.sessionOpen)} ${snapshot.currency} and weakens quickly if momentum fades back through that line.`;
+}
+
+function buildNaturalRiskAnswer(snapshot) {
+  const riskPoints = [];
+  const dayRangePercent = snapshot.price ? Math.abs((snapshot.dayHigh - snapshot.dayLow) / snapshot.price) * 100 : 0;
+
+  if (Math.abs(snapshot.intradayChangePercent) >= 2) {
+    riskPoints.push(`the session has already stretched ${formatSignedPercent(snapshot.intradayChangePercent)} from the open, so chase risk is elevated`);
+  }
+
+  if (Math.abs(snapshot.oneHourChangePercent) >= 0.8) {
+    riskPoints.push(`the last hour is moving ${formatSignedPercent(snapshot.oneHourChangePercent)}, so a sudden momentum fade could trap late entries`);
+  }
+
+  if (snapshot.price && snapshot.dayHigh && ((snapshot.dayHigh - snapshot.price) / snapshot.price) * 100 <= 0.4) {
+    riskPoints.push(`price is sitting close to the session high, so rejection risk is active if buyers cannot break through cleanly`);
+  }
+
+  if (snapshot.price && snapshot.dayLow && ((snapshot.price - snapshot.dayLow) / snapshot.price) * 100 <= 0.4) {
+    riskPoints.push(`price is sitting close to the session low, so breakdown risk is active if sellers press further`);
+  }
+
+  if (dayRangePercent >= 2) {
+    riskPoints.push(`today's range is already wide at about ${dayRangePercent.toFixed(2)}%, which means volatility can easily shake weak entries out`);
+  }
+
+  if (snapshot.intradayDirection !== snapshot.shortTermDirection) {
+    riskPoints.push(`the full-session direction and the last-hour direction are not fully aligned, which raises reversal risk`);
+  }
+
+  if (!riskPoints.length) {
+    riskPoints.push("the move is not especially stretched yet, so the main risk is getting chopped inside the current range instead of getting clean follow-through");
+  }
+
+  const opening = `${snapshot.name} does have some live risk right now:`;
+  const body = riskPoints.slice(0, 3).map((point, index) => {
+    if (index === 0) {
+      return `${opening} ${point}.`;
+    }
+    return `${point.charAt(0).toUpperCase()}${point.slice(1)}.`;
+  });
+
+  return body.join(" ");
+}
+
 function buildRiskAnswer(snapshot) {
   const bullets = [];
   const dayRangePercent = snapshot.price ? Math.abs((snapshot.dayHigh - snapshot.dayLow) / snapshot.price) * 100 : 0;
@@ -1982,7 +2116,7 @@ async function requestOpenRouterWithFallback(messages, temperature) {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${config.OPENROUTER_API_KEY}`,
-          "HTTP-Referer": `http://localhost:${config.PORT}`,
+          "HTTP-Referer": config.APP_BASE_URL,
           "X-Title": "SeeThrough Brain"
         },
         body: JSON.stringify({
